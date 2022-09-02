@@ -29,10 +29,12 @@ import (
 	"github.com/actions-runner-controller/actions-runner-controller/github"
 	"github.com/actions-runner-controller/actions-runner-controller/logging"
 	"github.com/kelseyhightower/envconfig"
+	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -43,7 +45,16 @@ const (
 
 var (
 	scheme = runtime.NewScheme()
-	log    = ctrl.Log.WithName("actions-runner-controller")
+	opts   = zap.Options{
+		Development: false,
+		EncoderConfigOptions: []zap.EncoderConfigOption{
+			func(ec *zapcore.EncoderConfig) {
+				ec.LevelKey = "severity"
+				ec.MessageKey = "message"
+			},
+		},
+	}
+	log = zap.New(zap.UseFlagOptions(&opts))
 )
 
 func init() {
@@ -129,7 +140,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctrl.SetLogger(logger)
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,

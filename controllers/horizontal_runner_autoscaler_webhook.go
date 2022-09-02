@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -237,6 +238,8 @@ func (autoscaler *HorizontalRunnerAutoscalerGitHubWebhook) Handle(w http.Respons
 				"repository.owner.type", e.Repo.Owner.GetType(),
 				"enterprise.slug", enterpriseSlug,
 				"action", e.GetAction(),
+				"workflowJob.runID", strconv.FormatInt(*workflowJob.RunID, 10),
+				"workflowJob.ID", strconv.FormatInt(*workflowJob.ID, 10),
 			)
 		}
 
@@ -324,7 +327,7 @@ func (autoscaler *HorizontalRunnerAutoscalerGitHubWebhook) Handle(w http.Respons
 	}
 
 	autoscaler.workerInit.Do(func() {
-		batchScaler := newBatchScaler(context.Background(), autoscaler.Client, autoscaler.Log)
+		batchScaler := newBatchScaler(context.Background(), autoscaler.Client, log)
 
 		queueLimit := autoscaler.QueueLimit
 		if queueLimit == 0 {
@@ -345,7 +348,7 @@ func (autoscaler *HorizontalRunnerAutoscalerGitHubWebhook) Handle(w http.Respons
 
 	msg := fmt.Sprintf("scaled %s by %d", target.Name, target.Amount)
 
-	autoscaler.Log.Info(msg)
+	log.Info(msg)
 
 	if written, err := w.Write([]byte(msg)); err != nil {
 		log.Error(err, "failed writing http response", "msg", msg, "written", written)
