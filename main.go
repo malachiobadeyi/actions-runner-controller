@@ -45,16 +45,6 @@ const (
 
 var (
 	scheme = runtime.NewScheme()
-	opts   = zap.Options{
-		Development: false,
-		EncoderConfigOptions: []zap.EncoderConfigOption{
-			func(ec *zapcore.EncoderConfig) {
-				ec.LevelKey = "severity"
-				ec.MessageKey = "message"
-			},
-		},
-	}
-	log = zap.New(zap.UseFlagOptions(&opts))
 )
 
 func init() {
@@ -131,8 +121,8 @@ func main() {
 	flag.StringVar(&logLevel, "log-level", logging.LogLevelDebug, `The verbosity of the logging. Valid values are "debug", "info", "warn", "error". Defaults to "debug".`)
 	flag.Parse()
 
-	logger := logging.NewLogger(logLevel)
-	c.Log = &logger
+	log := logging.NewLogger(logLevel)
+	c.Log = &log
 
 	ghClient, err = c.NewClient()
 	if err != nil {
@@ -140,7 +130,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	ctrl.SetLogger(log)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,

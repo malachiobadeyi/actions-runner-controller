@@ -45,16 +45,6 @@ import (
 
 var (
 	scheme = runtime.NewScheme()
-	opts   = zap.Options{
-		Development: false,
-		EncoderConfigOptions: []zap.EncoderConfigOption{
-			func(ec *zapcore.EncoderConfig) {
-				ec.LevelKey = "severity"
-				ec.MessageKey = "message"
-			},
-		},
-	}
-	setupLog = zap.New(zap.UseFlagOptions(&opts))
 )
 
 const (
@@ -113,6 +103,7 @@ func main() {
 	flag.StringVar(&c.RunnerGitHubURL, "runner-github-url", c.RunnerGitHubURL, "GitHub URL to be used by runners during registration")
 
 	flag.Parse()
+	setupLog := logging.NewLogger(logLevel)
 
 	if webhookSecretToken == "" && webhookSecretTokenEnv != "" {
 		setupLog.Info(fmt.Sprintf("Using the value from %s for -github-webhook-secret-token", webhookSecretTokenEnvName))
@@ -129,9 +120,7 @@ func main() {
 		setupLog.Info("-watch-namespace is %q. Only HorizontalRunnerAutoscalers in %q are watched, cached, and considered as scale targets.")
 	}
 
-	logger := logging.NewLogger(logLevel)
-
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	ctrl.SetLogger(setupLog)
 
 	// In order to support runner groups with custom visibility (selected repositories), we need to perform some GitHub API calls.
 	// Let the user define if they want to opt-in supporting this option by providing the proper GitHub authentication parameters
@@ -139,7 +128,7 @@ func main() {
 	// That is, all runner groups managed by ARC are assumed to be visible to any repositories,
 	// which is wrong when you have one or more non-default runner groups in your organization or enterprise.
 	if len(c.Token) > 0 || (c.AppID > 0 && c.AppInstallationID > 0 && c.AppPrivateKey != "") || (len(c.BasicauthUsername) > 0 && len(c.BasicauthPassword) > 0) {
-		c.Log = &logger
+		c.Log = &setupLog
 
 		ghClient, err = c.NewClient()
 		if err != nil {

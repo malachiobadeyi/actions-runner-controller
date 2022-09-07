@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/go-logr/logr"
 	zaplib "go.uber.org/zap"
@@ -21,9 +20,16 @@ const (
 
 func NewLogger(logLevel string) logr.Logger {
 	log := zap.New(func(o *zap.Options) {
+		
+		o.Development = false
+		o.EncoderConfigOptions = []zap.EncoderConfigOption{
+			func(ec *zapcore.EncoderConfig) {
+				ec.LevelKey = "severity"
+				ec.MessageKey = "message"
+			},
+		}
 		switch logLevel {
 		case LogLevelDebug:
-			o.Development = true
 			lvl := zaplib.NewAtomicLevelAt(zaplib.DebugLevel) // maps to logr's V(1)
 			o.Level = &lvl
 		case LogLevelInfo:
@@ -42,14 +48,12 @@ func NewLogger(logLevel string) logr.Logger {
 				fmt.Fprintf(os.Stderr, "Failed to parse --log-level=%s: %v", logLevel, err)
 				os.Exit(1)
 			}
-
 			// For example, --log-level=debug a.k.a --log-level=-1 maps to zaplib.DebugLevel, which is associated to logr's V(1)
 			// --log-level=-2 maps the specific custom log level that is associated to logr's V(2).
 			level := zapcore.Level(levelInt)
 			atomicLevel := zaplib.NewAtomicLevelAt(level)
 			o.Level = &atomicLevel
 		}
-		o.TimeEncoder = zapcore.TimeEncoderOfLayout(time.RFC3339)
 	})
 
 	return log
