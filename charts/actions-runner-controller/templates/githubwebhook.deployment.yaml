@@ -51,6 +51,9 @@ spec:
         {{- if .Values.githubWebhookServer.queueLimit }}
         - "--queue-limit={{ .Values.githubWebhookServer.queueLimit }}"
         {{- end }}
+        {{- if .Values.githubWebhookServer.enableJsonLogFormat  }}  
+        - "--enable-json-log-format={{ .Values.githubWebhookServer.enableJsonLogFormat }}"
+        {{- end }}
         command:
         - "/github-webhook-server"
         env:

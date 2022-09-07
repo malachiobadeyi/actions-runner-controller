@@ -188,10 +188,15 @@ admissionWebHooks:
 # https://github.com/actions-runner-controller/actions-runner-controller/issues/1005#issuecomment-993097155
 #hostNetwork: true
 
+## specify log format for actions runner controller
+enableJsonLogFormat: false
+
+
 githubWebhookServer:
   enabled: false
   replicaCount: 1
   useRunnerGroupsVisibility: false
+  enableJsonLogFormat: false
   secret:
     enabled: false
     create: false

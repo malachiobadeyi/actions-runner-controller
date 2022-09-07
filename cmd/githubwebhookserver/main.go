@@ -31,6 +31,7 @@ import (
 	"github.com/actions-runner-controller/actions-runner-controller/github"
 	"github.com/actions-runner-controller/actions-runner-controller/logging"
 	"github.com/kelseyhightower/envconfig"
+	"go.uber.org/zap/zapcore"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -38,11 +39,22 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
 	// +kubebuilder:scaffold:imports
 )
 
 var (
 	scheme = runtime.NewScheme()
+	logOpts   = zap.Options{
+		Development: true,
+		EncoderConfigOptions: []zap.EncoderConfigOption{
+			func(ec *zapcore.EncoderConfig) {
+				ec.LevelKey = "severity"
+				ec.MessageKey = "message"
+			},
+		},
+	}
 )
 
 const (
@@ -71,6 +83,7 @@ func main() {
 
 		logLevel   string
 		queueLimit int
+		enableJsonLogFormat bool
 
 		ghClient *github.Client
 	)
@@ -99,9 +112,16 @@ func main() {
 	flag.StringVar(&c.BasicauthUsername, "github-basicauth-username", c.BasicauthUsername, "Username for GitHub basic auth to use instead of PAT or GitHub APP in case it's running behind a proxy API")
 	flag.StringVar(&c.BasicauthPassword, "github-basicauth-password", c.BasicauthPassword, "Password for GitHub basic auth to use instead of PAT or GitHub APP in case it's running behind a proxy API")
 	flag.StringVar(&c.RunnerGitHubURL, "runner-github-url", c.RunnerGitHubURL, "GitHub URL to be used by runners during registration")
+	flag.BoolVar(&enableJsonLogFormat, "enable-json-log-format", false, "output logs in json format")
 
 	flag.Parse()
-	setupLog := logging.NewLogger(logLevel).WithName("setup")
+	
+	if enableJsonLogFormat {
+		logOpts.Development = false
+	} else {
+		logOpts.TimeEncoder = zapcore.TimeEncoderOfLayout(time.RFC3339)
+	}
+	setupLog := logging.NewLogger(logLevel, &logOpts).WithName("setup")
 
 	if webhookSecretToken == "" && webhookSecretTokenEnv != "" {
 		setupLog.Info(fmt.Sprintf("Using the value from %s for -github-webhook-secret-token", webhookSecretTokenEnvName))

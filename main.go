@@ -30,9 +30,13 @@ import (
 	"github.com/actions-runner-controller/actions-runner-controller/logging"
 	"github.com/kelseyhightower/envconfig"
 	"k8s.io/apimachinery/pkg/runtime"
+	"go.uber.org/zap/zapcore"
+
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
 	// +kubebuilder:scaffold:imports
 )
 
@@ -43,6 +47,15 @@ const (
 
 var (
 	scheme = runtime.NewScheme()
+	logOpts   = zap.Options{
+		Development: true,
+		EncoderConfigOptions: []zap.EncoderConfigOption{
+			func(ec *zapcore.EncoderConfig) {
+				ec.LevelKey = "severity"
+				ec.MessageKey = "message"
+			},
+		},
+	}
 )
 
 func init() {
@@ -83,6 +96,7 @@ func main() {
 		dockerRegistryMirror string
 		namespace            string
 		logLevel             string
+		enableJsonLogFormat	 bool
 
 		commonRunnerLabels commaSeparatedStringSlice
 	)
@@ -117,9 +131,17 @@ func main() {
 	flag.Var(&commonRunnerLabels, "common-runner-labels", "Runner labels in the K1=V1,K2=V2,... format that are inherited all the runners created by the controller. See https://github.com/actions-runner-controller/actions-runner-controller/issues/321 for more information")
 	flag.StringVar(&namespace, "watch-namespace", "", "The namespace to watch for custom resources. Set to empty for letting it watch for all namespaces.")
 	flag.StringVar(&logLevel, "log-level", logging.LogLevelDebug, `The verbosity of the logging. Valid values are "debug", "info", "warn", "error". Defaults to "debug".`)
-	flag.Parse()
+	flag.BoolVar(&enableJsonLogFormat, "enable-json-log-format", false, "output logs in json format")
 
-	log := logging.NewLogger(logLevel)
+	flag.Parse()
+	
+	if enableJsonLogFormat {
+		logOpts.Development = false
+	} else {
+		logOpts.TimeEncoder = zapcore.TimeEncoderOfLayout(time.RFC3339)
+	}
+
+	log := logging.NewLogger(logLevel, &logOpts)
 	c.Log = &log
 
 	ghClient, err = c.NewClient()

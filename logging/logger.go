@@ -18,16 +18,8 @@ const (
 	LogLevelError = "error"
 )
 
-func NewLogger(logLevel string) logr.Logger {
-	log := zap.New(func(o *zap.Options) {
-		
-		o.Development = false
-		o.EncoderConfigOptions = []zap.EncoderConfigOption{
-			func(ec *zapcore.EncoderConfig) {
-				ec.LevelKey = "severity"
-				ec.MessageKey = "message"
-			},
-		}
+func NewLogger(logLevel string, o *zap.Options) logr.Logger {
+
 		switch logLevel {
 		case LogLevelDebug:
 			lvl := zaplib.NewAtomicLevelAt(zaplib.DebugLevel) // maps to logr's V(1)
@@ -54,7 +46,5 @@ func NewLogger(logLevel string) logr.Logger {
 			atomicLevel := zaplib.NewAtomicLevelAt(level)
 			o.Level = &atomicLevel
 		}
-	})
-
-	return log
+		return zap.New(zap.UseFlagOptions(o))
 }
