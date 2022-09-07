@@ -101,7 +101,7 @@ func main() {
 	flag.StringVar(&c.RunnerGitHubURL, "runner-github-url", c.RunnerGitHubURL, "GitHub URL to be used by runners during registration")
 
 	flag.Parse()
-	setupLog := logging.NewLogger(logLevel)
+	setupLog := logging.NewLogger(logLevel).WithName("setup")
 
 	if webhookSecretToken == "" && webhookSecretTokenEnv != "" {
 		setupLog.Info(fmt.Sprintf("Using the value from %s for -github-webhook-secret-token", webhookSecretTokenEnvName))
