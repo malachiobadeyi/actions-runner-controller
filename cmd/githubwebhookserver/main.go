@@ -83,7 +83,7 @@ func main() {
 
 		logLevel   string
 		queueLimit int
-		enableJsonLogFormat bool
+		enableProdLogConfig bool
 
 		ghClient *github.Client
 	)
@@ -112,11 +112,11 @@ func main() {
 	flag.StringVar(&c.BasicauthUsername, "github-basicauth-username", c.BasicauthUsername, "Username for GitHub basic auth to use instead of PAT or GitHub APP in case it's running behind a proxy API")
 	flag.StringVar(&c.BasicauthPassword, "github-basicauth-password", c.BasicauthPassword, "Password for GitHub basic auth to use instead of PAT or GitHub APP in case it's running behind a proxy API")
 	flag.StringVar(&c.RunnerGitHubURL, "runner-github-url", c.RunnerGitHubURL, "GitHub URL to be used by runners during registration")
-	flag.BoolVar(&enableJsonLogFormat, "enable-json-log-format", false, "output logs in json format")
+	flag.BoolVar(&enableProdLogConfig, "enable-prod-log-config", false, "use Zap production config which will default to json format")
 
 	flag.Parse()
 	
-	if enableJsonLogFormat {
+	if enableProdLogConfig {
 		logOpts.Development = false
 	} else {
 		logOpts.TimeEncoder = zapcore.TimeEncoderOfLayout(time.RFC3339)

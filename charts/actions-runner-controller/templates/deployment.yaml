@@ -67,8 +67,8 @@ spec:
         {{- if .Values.runner.statusUpdateHook.enabled }}
         - "--runner-status-update-hook"
         {{- end }}
-        {{- if .Values.enableJsonLogFormat  }}  
-        - "--enable-json-log-format={{ .Values.enableJsonLogFormat }}"
+        {{- if .Values.enableProdLogConfig  }}  
+        - "--enable-prod-log-config={{ .Values.enableProdLogConfig }}"
         {{- end }}
         command:
         - "/manager"

@@ -92,11 +92,11 @@ func main() {
 		runnerImage            string
 		runnerImagePullSecrets stringSlice
 
-		dockerImage          string
-		dockerRegistryMirror string
-		namespace            string
-		logLevel             string
-		enableJsonLogFormat	 bool
+		dockerImage          			string
+		dockerRegistryMirror 			string
+		namespace            			string
+		logLevel             			string
+		enableProdLogConfig	 			bool
 
 		commonRunnerLabels commaSeparatedStringSlice
 	)
@@ -131,11 +131,11 @@ func main() {
 	flag.Var(&commonRunnerLabels, "common-runner-labels", "Runner labels in the K1=V1,K2=V2,... format that are inherited all the runners created by the controller. See https://github.com/actions-runner-controller/actions-runner-controller/issues/321 for more information")
 	flag.StringVar(&namespace, "watch-namespace", "", "The namespace to watch for custom resources. Set to empty for letting it watch for all namespaces.")
 	flag.StringVar(&logLevel, "log-level", logging.LogLevelDebug, `The verbosity of the logging. Valid values are "debug", "info", "warn", "error". Defaults to "debug".`)
-	flag.BoolVar(&enableJsonLogFormat, "enable-json-log-format", false, "output logs in json format")
+	flag.BoolVar(&enableProdLogConfig, "enable-prod-log-config", false, "output logs in json format")
 
 	flag.Parse()
 	
-	if enableJsonLogFormat {
+	if enableProdLogConfig {
 		logOpts.Development = false
 	} else {
 		logOpts.TimeEncoder = zapcore.TimeEncoderOfLayout(time.RFC3339)

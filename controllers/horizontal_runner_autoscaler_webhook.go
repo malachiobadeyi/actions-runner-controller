@@ -731,6 +731,7 @@ HRA:
 			var rs v1alpha1.RunnerSet
 
 			if err := autoscaler.Client.Get(context.Background(), types.NamespacedName{Namespace: hra.Namespace, Name: hra.Spec.ScaleTargetRef.Name}, &rs); err != nil {
+				
 				return nil, err
 			}
 

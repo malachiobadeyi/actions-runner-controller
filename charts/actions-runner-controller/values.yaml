@@ -189,14 +189,14 @@ admissionWebHooks:
 #hostNetwork: true
 
 ## specify log format for actions runner controller
-enableJsonLogFormat: false
+enableProdLogConfig: false
 
 
 githubWebhookServer:
   enabled: false
   replicaCount: 1
   useRunnerGroupsVisibility: false
-  enableJsonLogFormat: false
+  enableProdLogConfig: false
   secret:
     enabled: false
     create: false
